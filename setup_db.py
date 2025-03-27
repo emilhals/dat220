@@ -19,9 +19,7 @@ def create_connection(db_file):
 
     return conn
 
-# on delete cascade => fjern childs til parent. 
 ##### CREATE TABLES ######## 
-
 # unique usernames, emails and ids
 create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -33,14 +31,15 @@ create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 admin BOOLEAN,
                             );"""
                                 
-# On delete not null, not cascade. Dont want to delete communities when deleting a user.   
+# On delete set null -> if creator deletes account, community remains and creator = null
+# keep child(community) if parent(user) is removed
 create_communities_table = """CREATE TABLE IF NOT EXISTS communities (
                                 id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                                 about TINYTEXT,
                                 users,
                                 posts,
                                 creator INT NOT NULL,
-                                FOREIGN KEY (creator) REFERENCES users(id) ON DELETE NOT NULL
+                                FOREIGN KEY (creator) REFERENCES users(id) ON DELETE SET NULL
                             );"""
 
 create_posts_table = """CREATE TABLE IF NOT EXISTS posts (
@@ -67,7 +66,7 @@ create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
                                 community INT NOT NULL,
                                 user INT NOT NULL,
                                 PRIMARY KEY (community, user),
-                                FOREIGN KEY (community) REFERENCES communities(id) ON DELETE  CASCADE
+                                FOREIGN KEY (community) REFERENCES communities(id) ON DELETE CASCADE
                                 FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
                             );"""
 
@@ -78,7 +77,12 @@ create_communitypost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
                                 FOREIGN KEY (community) REFERENCES communities(id) ON DELETE CASCADE
                                 FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
                             );"""
-
+create_follow_table = """ CREATE TABLE IF NOT EXISTS follow (
+                                follower INT NOT NULL,
+                                follows INT NOT NULL,
+                                FOREIGN KEY (follower) REFERENCES users(id) ON DELETE CASCADE
+                                FOREIGN KEY (follows) REFERENCES users(id) ON DELETE CASCADE
+                            );"""
 def create_table(conn, create_table_sql):
     try:
         c = conn.cursor()
@@ -90,9 +94,12 @@ def setup():
     conn = create_connection(database)
     if conn is not None:
         create_table(conn, create_users_table)
-        create_table(conn, sql_create_businesses_table)
-        create_table(conn, sql_create_bookings_table)
-
+        create_table(conn, create_communities_table)
+        create_table(conn, create_posts_table)
+        create_table(conn, create_comments_table)
+        create_table(conn, create_communityuser_table)
+        create_table(conn, create_communitypost_table)
+        create_table(conn, create_follow_table)
         conn.close()
 
 
