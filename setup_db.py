@@ -19,15 +19,19 @@ def create_connection(db_file):
 
     return conn
 
-##### CREATE TABLES ######## 
+
 # INTEGER PRIMARY KEY = autoincrementing id
-# SQLite doesn't AUTO_INCREMENT, but INTEGER PRIMARY KEY des the same and increments!
+# SQLite doesn't AUTO_INCREMENT, but INTEGER PRIMARY KEY does the same and increments!
 # INT and INTEGER is not same, int is stored as NUMERIC and integer as 8-bit integer
-#  only second allows auto incrementing and INTEGER must be used for PK. Therefore
-#  all references to PK=INT is also INTEGER, INT works but not ideal
-# unique usernames, emails and ids
-# ADMIN = 1 if admin, 0 if not. SQLite doesn't support boolean, 1 and 0. 
-# VARCHAR(20) = TEXT for SQLite, so i swapped:
+#  only INTEGER allows auto-incrementing = PK. Therefore
+#  all ref:FK=INT is also INTEGER, even though INT works it's not ideal
+# UNIQUE usernames, emails and ids
+# ADMIN = 1 if admin, 0 if not. SQLite doesn't support boolean, 1 and 0 works the same though.
+# VARCHAR(20) = TEXT for SQLite, so i swapped them for simplicity
+# On delete set null -> if creator deletes account, community remains and creator = null
+# On delete cascade -> if user deletes community, all posts and comments are removed
+
+##### CREATE TABLES ######## 
 create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 username TEXT UNIQUE NOT NULL,
@@ -38,8 +42,6 @@ create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 admin INT NOT NULL DEFAULT 0
                             );"""
                                 
-# On delete set null -> if creator deletes account, community remains and creator = null
-# keep child(community) if parent(user) is removed
 # Posts and Users are connected by relationship, but we can store them as ints here if we want?
 create_communities_table = """CREATE TABLE IF NOT EXISTS communities (
                                 id INTEGER PRIMARY KEY NOT NULL,
