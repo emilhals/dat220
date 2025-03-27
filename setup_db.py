@@ -19,29 +19,64 @@ def create_connection(db_file):
 
     return conn
 
+# on delete cascade => fjern childs til parent. 
 ##### CREATE TABLES ######## 
+
+# unique usernames, emails and ids
 create_users_table = """CREATE TABLE IF NOT EXISTS users (
-                                id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                                username VARCHAR(20) NOT NULL,
+                                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                username VARCHAR(20) UNIQUE NOT NULL,
                                 gender CHAR(1) NOT NULL check(gender in ('F','M','O')),
-                                email VARCHAR(30) NOT NULL,
-                                password VARCHAR(20) NOT NULL
-                                created DATE DEFAULT current_timestamp
+                                email VARCHAR(30) UNIQUE NOT NULL,
+                                password VARCHAR(20) NOT NULL,
+                                created DATE DEFAULT current_timestamp,
+                                admin BOOLEAN,
                             );"""
-                            
+                                
+# On delete not null, not cascade. Dont want to delete communities when deleting a user.   
 create_communities_table = """CREATE TABLE IF NOT EXISTS communities (
-                                id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                                 about TINYTEXT,
-                                users 
-                                FOREIGN KEY ()
+                                users,
+                                posts,
+                                creator INT NOT NULL,
+                                FOREIGN KEY (creator) REFERENCES users(id) ON DELETE NOT NULL
+                            );"""
+
+create_posts_table = """CREATE TABLE IF NOT EXISTS posts (
+                                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                user INT NOT NULL,
+                                img LONGBLOB, 
+                                text TINYTEXT,
+                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
+                            );"""
+
+create_comments_table = """CREATE TABLE IF NOT EXISTS comments (
+                                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                post INT NOT NULL,
+                                user INT NOT NULL,
+                                reply INT NOT NULL,
+                                img LONGBLOB, 
+                                text TINYTEXT,
+                                FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
+                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
+                                FOREIGN KEY (reply) REFERENCES comments(id) ON DELETE CASCADE
                             );"""
 
 create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
-                                community int NOT NULL,
-                                user int NOT NULL,
-                                FOREIGN KEY (community) REFERENCES community(id) ON DELETE set null
-                                FOREIGN KEY (user) REFERENCES user(id) ON DELETE set null
+                                community INT NOT NULL,
+                                user INT NOT NULL,
+                                PRIMARY KEY (community, user),
+                                FOREIGN KEY (community) REFERENCES communities(id) ON DELETE  CASCADE
+                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
+                            );"""
 
+create_communitypost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
+                                community INT NOT NULL,
+                                post INT NOT NULL,
+                                PRIMARY KEY (community, post),
+                                FOREIGN KEY (community) REFERENCES communities(id) ON DELETE CASCADE
+                                FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
                             );"""
 
 def create_table(conn, create_table_sql):
