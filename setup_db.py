@@ -40,10 +40,10 @@ create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 admin INT NOT NULL DEFAULT 0
                             );"""
                                 
+# Posts and Users are connected by relationship, but we can store them as ints here if we want?
 create_communities_table = """CREATE TABLE IF NOT EXISTS communities (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 about TINYTEXT,
-                                members INT,
                                 creator INTEGER NOT NULL,
                                 FOREIGN KEY (creator) REFERENCES users(id) ON DELETE SET NULL
                             );"""
@@ -53,7 +53,6 @@ create_posts_table = """CREATE TABLE IF NOT EXISTS posts (
                                 user INTEGER NOT NULL,
                                 img LONGBLOB, 
                                 text TINYTEXT,
-                                likes INT,
                                 FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
                             );"""
 
@@ -64,26 +63,9 @@ create_comments_table = """CREATE TABLE IF NOT EXISTS comments (
                                 reply INTEGER NOT NULL,
                                 img LONGBLOB, 
                                 text TINYTEXT,
-                                likes INT,
                                 FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
                                 FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
                                 FOREIGN KEY (reply) REFERENCES comments(id) ON DELETE CASCADE
-                            );"""
-
-create_likeComment_table = """CREATE TABLE IF NOT EXISTS likeComment (
-                                user INTEGER NOT NULL,
-                                comment INTEGER NOT NULL,
-                                PRIMARY KEY (user, comment),
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
-                                FOREIGN KEY (comment) REFERENCES comments(id) ON DELETE CASCADE
-                            );"""
-
-create_likePost_table = """CREATE TABLE IF NOT EXISTS likePost (
-                                user INTEGER NOT NULL,
-                                post INTEGER NOT NULL,
-                                PRIMARY KEY (user, post),
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
-                                FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
                             );"""
 
 create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
@@ -121,13 +103,34 @@ def setup():
         create_table(conn, create_communities_table)
         create_table(conn, create_posts_table)
         create_table(conn, create_comments_table)
-        create_table(conn, create_likeComment_table)
-        create_table(conn, create_likePost_table)
         create_table(conn, create_communityuser_table)
         create_table(conn, create_communitypost_table)
         create_table(conn, create_follow_table)
         conn.close()
 
+# user registration
+def register(connection, user):
+    sql = ''' INSERT INTO users(username, gender, email, password, admin)
+        VALUES(?,?,?,?,?) '''
+    
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
+        connection.commit()
+    except Error as e:
+        print(e)
+
+# user registration
+def register(connection, user):
+    sql = ''' INSERT INTO users(username, gender, email, password, admin)
+        VALUES(?,?,?,?,?) '''
+ 
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
+        connection.commit()
+    except Error as e:
+        print(e)
 
 if __name__ == '__main__':
     # If executed as main, this will create tables and insert initial data
@@ -139,11 +142,10 @@ if __name__ == '__main__':
 #Add post to community:
 # INSERT INTO community_posts (community.id, posts.id) VALUES (1, 2);
 #Add comment to post:
-# INSERT INTO comments (posts.id, users.id, reply.id, img, text) VALUES (1, 2, 3, 'img', 'text');
-#
+# INSERT INTO comments (posts.id, users.id, reply.id, img, text) VALUES (1, 2, 3, 'img', 'text');   
 
 #Admin check:
-#  SELECT * FROM users WHERE admin = TRUE; -> Fetches rows where admin = 1
+#  SELECT * FROM users WHERE admin = TRUE; → Fetches rows where admin = 1
 
 #Get all users in a community:
 # SELECT users.* FROM users
