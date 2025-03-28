@@ -3,7 +3,6 @@ from sqlite3 import Error
 
 database = r"./database.db"
 
-
 def create_connection(db_file):
     """ create a database connection to the SQLite database
         specified by db_file
@@ -33,7 +32,6 @@ def create_connection(db_file):
 
 ##### CREATE TABLES ######## 
 create_users_table = """CREATE TABLE IF NOT EXISTS users (
-                                id INTEGER PRIMARY KEY NOT NULL,
                                 username TEXT UNIQUE NOT NULL,
                                 gender CHAR(1) NOT NULL check(gender in ('F','M','O')),
                                 email VARCHAR UNIQUE NOT NULL,
@@ -110,6 +108,18 @@ def setup():
         create_table(conn, create_follow_table)
         conn.close()
 
+# user registration
+def register(connection, user):
+    sql = ''' INSERT INTO users(username, gender, email, password, admin)
+        VALUES(?,?,?,?,?) '''
+    
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
+        connection.commit()
+    except Error as e:
+        print(e)
+
 
 if __name__ == '__main__':
     # If executed as main, this will create tables and insert initial data
@@ -121,8 +131,7 @@ if __name__ == '__main__':
 #Add post to community:
 # INSERT INTO community_posts (community.id, posts.id) VALUES (1, 2);
 #Add comment to post:
-# INSERT INTO comments (posts.id, users.id, reply.id, img, text) VALUES (1, 2, 3, 'img', 'text');
-#
+# INSERT INTO comments (posts.id, users.id, reply.id, img, text) VALUES (1, 2, 3, 'img', 'text');   
 
 #Admin check:
 #  SELECT * FROM users WHERE admin = TRUE; → Fetches rows where admin = 1
