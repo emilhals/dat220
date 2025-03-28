@@ -42,7 +42,6 @@ create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 admin INT NOT NULL DEFAULT 0
                             );"""
                                 
-# Posts and Users are connected by relationship, but we can store them as ints here if we want?
 create_communities_table = """CREATE TABLE IF NOT EXISTS communities (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 about TINYTEXT,
@@ -142,7 +141,11 @@ if __name__ == '__main__':
 # INSERT INTO community_posts (community.id, posts.id) VALUES (1, 2);
 #Add comment to post:
 # INSERT INTO comments (posts.id, users.id, reply.id, img, text) VALUES (1, 2, 3, 'img', 'text');
-#
+
+#Find amount of likes members:
+# COUNT(users.id) FROM likeComment
+# COUNT(users.id) FROM likePost
+# COUNT(communityUsers) where community = ...
 
 #Admin check:
 #  SELECT * FROM users WHERE admin = TRUE; -> Fetches rows where admin = 1
