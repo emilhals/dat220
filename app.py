@@ -12,7 +12,6 @@ class User:
     self.password = password
     self.admin = admin
 
-
 @app.route("/")
 def index():
   return render_template('index.html')
@@ -50,7 +49,7 @@ def login():
       response.set_cookie("cookie", username)
       return response
     else:
-      print("failed to login")
+      print("Failed to login")
 
   return render_template('login.html')
 
