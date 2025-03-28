@@ -33,6 +33,7 @@
 
 
 
+
 #FDs:
 # user.ID -> (username, gender, email, password, created, admin)
 # community.ID -> (about, members) creator?
@@ -43,3 +44,5 @@
 # (user.ID,user.ID) -> (follow) TABLE
 # (community.ID,user.ID) -> (communityUser) TABLE
 # (community.ID,post.ID) -> (communityPost) TABLE
+
+#Enten så er DB 2NF eller BCNF? litt usikker.
