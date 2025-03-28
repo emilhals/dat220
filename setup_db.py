@@ -3,7 +3,6 @@ from sqlite3 import Error
 
 database = r"./database.db"
 
-
 def create_connection(db_file):
     """ create a database connection to the SQLite database
         specified by db_file
@@ -45,7 +44,6 @@ create_user_table = """CREATE TABLE IF NOT EXISTS user (
 create_community_table = """CREATE TABLE IF NOT EXISTS community (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 about TINYTEXT,
-                                members INT,
                                 creator INTEGER NOT NULL,
                                 FOREIGN KEY (creator) REFERENCES user(id) ON DELETE SET NULL
                             );"""
@@ -130,6 +128,55 @@ def setup():
         create_table(conn, create_communitypost_table)
         create_table(conn, create_follow_table)
         conn.close()
+
+# user registration
+def register(connection, user):
+    sql = ''' INSERT INTO users(username, gender, email, password, admin)
+        VALUES(?,?,?,?,?) '''
+    
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
+        connection.commit()
+    except Error as e:
+        print(e)
+
+# user registration
+def register(connection, user):
+    sql = ''' INSERT INTO users(username, gender, email, password, admin)
+        VALUES(?,?,?,?,?) '''
+ 
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+def login(connection, username, password):
+    sql = ''' SELECT username, password FROM users 
+    WHERE username=? AND password=? ''' 
+
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (username, password,))
+        connection.commit()
+    
+        row = cur.fetchone()
+        if row:
+            username, password = row
+            
+            return {
+                "username": username,
+                "password": password
+            }        
+
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
 
 if __name__ == '__main__':
     # If executed as main, this will create tables and insert initial data
