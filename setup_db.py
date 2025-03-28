@@ -32,7 +32,7 @@ def create_connection(db_file):
 # On delete cascade -> if user deletes community, all posts and comments are removed
 
 ##### CREATE TABLES ######## 
-create_users_table = """CREATE TABLE IF NOT EXISTS users (
+create_user_table = """CREATE TABLE IF NOT EXISTS user (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 username TEXT UNIQUE NOT NULL,
                                 gender CHAR(1) NOT NULL check(gender in ('F','M','O')),
@@ -42,24 +42,24 @@ create_users_table = """CREATE TABLE IF NOT EXISTS users (
                                 admin INT NOT NULL DEFAULT 0
                             );"""
                                 
-create_communities_table = """CREATE TABLE IF NOT EXISTS communities (
+create_community_table = """CREATE TABLE IF NOT EXISTS community (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 about TINYTEXT,
                                 members INT,
                                 creator INTEGER NOT NULL,
-                                FOREIGN KEY (creator) REFERENCES users(id) ON DELETE SET NULL
+                                FOREIGN KEY (creator) REFERENCES user(id) ON DELETE SET NULL
                             );"""
 
-create_posts_table = """CREATE TABLE IF NOT EXISTS posts (
+create_post_table = """CREATE TABLE IF NOT EXISTS post (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 user INTEGER NOT NULL,
                                 img LONGBLOB, 
                                 text TINYTEXT,
                                 likes INT,
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
+                                FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
                             );"""
 
-create_comments_table = """CREATE TABLE IF NOT EXISTS comments (
+create_comment_table = """CREATE TABLE IF NOT EXISTS comment (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 post INTEGER NOT NULL,
                                 user INTEGER NOT NULL,
@@ -67,47 +67,47 @@ create_comments_table = """CREATE TABLE IF NOT EXISTS comments (
                                 img LONGBLOB, 
                                 text TINYTEXT,
                                 likes INT,
-                                FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
-                                FOREIGN KEY (reply) REFERENCES comments(id) ON DELETE CASCADE
+                                FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
+                                FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
+                                FOREIGN KEY (reply) REFERENCES comment(id) ON DELETE CASCADE
                             );"""
 
-create_likeComment_table = """CREATE TABLE IF NOT EXISTS likeComment (
+create_commentLike_table = """CREATE TABLE IF NOT EXISTS commentLike (
                                 user INTEGER NOT NULL,
                                 comment INTEGER NOT NULL,
                                 PRIMARY KEY (user, comment),
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
-                                FOREIGN KEY (comment) REFERENCES comments(id) ON DELETE CASCADE
+                                FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
+                                FOREIGN KEY (comment) REFERENCES comment(id) ON DELETE CASCADE
                             );"""
 
-create_likePost_table = """CREATE TABLE IF NOT EXISTS likePost (
+create_postLike_table = """CREATE TABLE IF NOT EXISTS postLike (
                                 user INTEGER NOT NULL,
                                 post INTEGER NOT NULL,
                                 PRIMARY KEY (user, post),
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
-                                FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
+                                FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
+                                FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
                             );"""
 
 create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
                                 community INTEGER NOT NULL,
                                 user INTEGER NOT NULL,
                                 PRIMARY KEY (community, user),
-                                FOREIGN KEY (community) REFERENCES communities(id) ON DELETE CASCADE
-                                FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE
+                                FOREIGN KEY (community) REFERENCES community(id) ON DELETE CASCADE
+                                FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
                             );"""
 
 create_communitypost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
                                 community INTEGER NOT NULL,
                                 post INTEGER NOT NULL,
                                 PRIMARY KEY (community, post),
-                                FOREIGN KEY (community) REFERENCES communities(id) ON DELETE CASCADE
-                                FOREIGN KEY (post) REFERENCES posts(id) ON DELETE CASCADE
+                                FOREIGN KEY (community) REFERENCES community(id) ON DELETE CASCADE
+                                FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
                             );"""
 create_follow_table = """ CREATE TABLE IF NOT EXISTS follow (
                                 follower INTEGER NOT NULL,
                                 follows INTEGER NOT NULL,
-                                FOREIGN KEY (follower) REFERENCES users(id) ON DELETE CASCADE
-                                FOREIGN KEY (follows) REFERENCES users(id) ON DELETE CASCADE
+                                FOREIGN KEY (follower) REFERENCES user(id) ON DELETE CASCADE
+                                FOREIGN KEY (follows) REFERENCES user(id) ON DELETE CASCADE
                             );"""
 def create_table(conn, create_table_sql):
     try:
@@ -119,12 +119,12 @@ def create_table(conn, create_table_sql):
 def setup():
     conn = create_connection(database)
     if conn is not None:
-        create_table(conn, create_users_table)
-        create_table(conn, create_communities_table)
-        create_table(conn, create_posts_table)
-        create_table(conn, create_comments_table)
-        create_table(conn, create_likeComment_table)
-        create_table(conn, create_likePost_table)
+        create_table(conn, create_user_table)
+        create_table(conn, create_community_table)
+        create_table(conn, create_post_table)
+        create_table(conn, create_comment_table)
+        create_table(conn, create_commentLike_table)
+        create_table(conn, create_postLike_table)
         create_table(conn, create_communityuser_table)
         create_table(conn, create_communitypost_table)
         create_table(conn, create_follow_table)
@@ -133,34 +133,3 @@ def setup():
 if __name__ == '__main__':
     # If executed as main, this will create tables and insert initial data
     setup()
-
-
-#Add user to community:
-# INSERT INTO community_users (community.id, users.id) VALUES (1, 2);
-#Add post to community:
-# INSERT INTO community_posts (community.id, posts.id) VALUES (1, 2);
-#Add comment to post:
-# INSERT INTO comments (posts.id, users.id, reply.id, img, text) VALUES (1, 2, 3, 'img', 'text');
-
-#Find amount of likes members:
-# COUNT(users.id) FROM likeComment
-# COUNT(users.id) FROM likePost
-# COUNT(communityUsers) where community = ...
-
-#Admin check:
-#  SELECT * FROM users WHERE admin = TRUE; -> Fetches rows where admin = 1
-
-#Get all users in a community:
-# SELECT users.* FROM users
-# JOIN CommunityUsers ON users.id = CommunityUsers.user
-#       WHERE CommunityUsers.community = ..; <- use to get one specific
-
-#Get all posts in a community:
-# SELECT posts.* FROM posts
-# JOIN CommunityPosts ON posts.id = CommunityPosts.post
-#       WHERE CommunityPosts.community = ...; <- use to get one specific
-
-#Get all comments on a post:
-# SELECT comments.* FROM comments
-# JOIN posts ON comments.post = posts.id
-#       WHERE posts.id = ...; <- use to get one specific
