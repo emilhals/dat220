@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, make_response, request
 
 import setup_db as db
 
@@ -34,6 +34,25 @@ def register():
     
   return render_template('register.html')
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+  if request.method == "POST":
+    connection = db.create_connection("database.db")
+
+    data = request.form
+    username = data["username"]
+    password = data["password"]
+    
+    login = db.login(connection, username, password)
+    
+    if login:
+      response = make_response(render_template('index.html'))
+      response.set_cookie("cookie", username)
+      return response
+    else:
+      print("failed to login")
+
+  return render_template('login.html')
 
 if __name__ == '__main__':
 	app.run(debug=True)

@@ -131,6 +131,31 @@ def register(connection, user):
         connection.commit()
     except Error as e:
         print(e)
+    finally:
+        cur.close()
+
+def login(connection, username, password):
+    sql = ''' SELECT username, password FROM users 
+    WHERE username=? AND password=? ''' 
+
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (username, password,))
+        connection.commit()
+    
+        row = cur.fetchone()
+        if row:
+            username, password = row
+            
+            return {
+                "username": username,
+                "password": password
+            }        
+
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
 
 if __name__ == '__main__':
     # If executed as main, this will create tables and insert initial data
