@@ -45,4 +45,4 @@
 # (community.ID,user.ID) -> (communityUser) TABLE
 # (community.ID,post.ID) -> (communityPost) TABLE
 
-#Enten så er DB 2NF eller BCNF? litt usikker.
+#ER/DB er i BOYCE-CODD NORMAL FORM!
