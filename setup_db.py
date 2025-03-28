@@ -106,6 +106,7 @@ create_communitypost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
 create_follow_table = """ CREATE TABLE IF NOT EXISTS follow (
                                 follower INTEGER NOT NULL,
                                 follows INTEGER NOT NULL,
+                                PRIMARY KEY (follower, follows),
                                 FOREIGN KEY (follower) REFERENCES user(id) ON DELETE CASCADE
                                 FOREIGN KEY (follows) REFERENCES user(id) ON DELETE CASCADE
                             );"""
