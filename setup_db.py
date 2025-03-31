@@ -26,9 +26,12 @@ def create_connection(db_file):
 #  all ref:FK=INT is also INTEGER, even though INT works it's not ideal
 # UNIQUE usernames, emails and ids
 # ADMIN = 1 if admin, 0 if not. SQLite doesn't support boolean, 1 and 0 works the same though.
+#   -> BOOLEAN NOT NULL DEFAULT 0 works as 1 or 0!
 # VARCHAR(20) = TEXT for SQLite, so i swapped them for simplicity
 # On delete set null -> if creator deletes account, community remains and creator = null
 # On delete cascade -> if user deletes community, all posts and comments are removed
+# TINYTEXT = VARCHAR(255), not supported by SQLite. No error pga sql type affinity = not enforced
+#   -> Swapped for TEXT=Varchar(255)
 
 ##### CREATE TABLES ######## 
 create_user_table = """CREATE TABLE IF NOT EXISTS user (
@@ -38,12 +41,12 @@ create_user_table = """CREATE TABLE IF NOT EXISTS user (
                                 email VARCHAR UNIQUE NOT NULL,
                                 password TEXT NOT NULL,
                                 created DATE DEFAULT current_timestamp,
-                                admin INT NOT NULL DEFAULT 0
+                                admin BOOLEAN NOT NULL DEFAULT 0
                             );"""
                                 
 create_community_table = """CREATE TABLE IF NOT EXISTS community (
                                 id INTEGER PRIMARY KEY NOT NULL,
-                                about TINYTEXT,
+                                about TEXT,
                                 creator INTEGER NOT NULL,
                                 FOREIGN KEY (creator) REFERENCES user(id) ON DELETE SET NULL
                             );"""
@@ -52,8 +55,7 @@ create_post_table = """CREATE TABLE IF NOT EXISTS post (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 user INTEGER NOT NULL,
                                 img LONGBLOB, 
-                                text TINYTEXT,
-                                likes INT,
+                                text TEXT,
                                 FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
                             );"""
 
@@ -63,8 +65,7 @@ create_comment_table = """CREATE TABLE IF NOT EXISTS comment (
                                 user INTEGER NOT NULL,
                                 reply INTEGER NOT NULL,
                                 img LONGBLOB, 
-                                text TINYTEXT,
-                                likes INT,
+                                text TEXT,
                                 FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
                                 FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
                                 FOREIGN KEY (reply) REFERENCES comment(id) ON DELETE CASCADE
