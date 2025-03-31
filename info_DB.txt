@@ -51,5 +51,3 @@
 # HOWEVER!!!! We want to delete creators and keep communities as a functionallity, 
 # and therefore 3NF is sufficeient and easier. 
 # It is in 3NF, and should stay that way. 
-
-
