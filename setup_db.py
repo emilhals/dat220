@@ -134,18 +134,6 @@ def setup():
 def register(connection, user):
     sql = ''' INSERT INTO users(username, gender, email, password, admin)
         VALUES(?,?,?,?,?) '''
-    
-    try:
-        cur = connection.cursor()
-        cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
-        connection.commit()
-    except Error as e:
-        print(e)
-
-# user registration
-def register(connection, user):
-    sql = ''' INSERT INTO users(username, gender, email, password, admin)
-        VALUES(?,?,?,?,?) '''
  
     try:
         cur = connection.cursor()
@@ -155,7 +143,8 @@ def register(connection, user):
         print(e)
     finally:
         cur.close()
-
+        
+# user login
 def login(connection, username, password):
     sql = ''' SELECT username, password FROM users 
     WHERE username=? AND password=? ''' 
