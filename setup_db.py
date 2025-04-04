@@ -87,7 +87,7 @@ create_postLike_table = """CREATE TABLE IF NOT EXISTS postLike (
                                 FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
                             );"""
 
-create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
+create_communityUser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
                                 community INTEGER NOT NULL,
                                 user INTEGER NOT NULL,
                                 PRIMARY KEY (community, user),
@@ -95,7 +95,7 @@ create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
                                 FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
                             );"""
 
-create_communitypost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
+create_communityPost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
                                 community INTEGER NOT NULL,
                                 post INTEGER NOT NULL,
                                 PRIMARY KEY (community, post),
@@ -130,11 +130,55 @@ def setup():
         create_table(conn, create_follow_table)
         conn.close()
 
+############# Relationships #############
+# follows, likes and community joins.
+
+############# COMMUNITY #############
+# community is initially created with communityUser
+def create_community(connection, community, communityUser):
+    sql = ''' INSERT INTO community(about, creator) VALUES(?,?) 
+        INSERT INTO communityUser(community, user) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (community.about, community.creator, communityUser.id, communityUser.creator)) 
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+# post is initially created with communityPost
+def create_post(connection, post, communityPost):
+    sql = ''' INSERT INTO posts(user, img, text) VALUES(?,?,?) 
+        INSERT INTO communityPost(community, post) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (post.user, post.img, post.txt, communityPost.community, communityPost.post)) 
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+# comment is initially created with post/comment reference
+def create_comment(connection, comment):
+    sql = ''' SELECT post.id FROM post where post.id = ? 
+        INSERT INTO comment(user, post.id, reply, text)
+        VALUES(?,?,?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (comment.user, comment.post, comment.reply comment.txt)) 
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+############# USER #############
 # user registration
-def register(connection, user):
+def create_user(connection, user):
     sql = ''' INSERT INTO users(username, gender, email, password, admin)
         VALUES(?,?,?,?,?) '''
- 
     try:
         cur = connection.cursor()
         cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
@@ -148,7 +192,6 @@ def register(connection, user):
 def login(connection, username, password):
     sql = ''' SELECT username, password FROM users 
     WHERE username=? AND password=? ''' 
-
     try:
         cur = connection.cursor()
         cur.execute(sql, (username, password,))
@@ -162,7 +205,6 @@ def login(connection, username, password):
                 "username": username,
                 "password": password
             }        
-
     except Error as e:
         print(e)
     finally:
