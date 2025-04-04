@@ -148,6 +148,7 @@ def create_community(connection, community, communityUser):
         cur.close()
 
 # post is initially created with communityPost
+#NOT COMPLETE
 def create_post(connection, post, communityPost):
     sql = ''' INSERT INTO posts(user, img, text) VALUES(?,?,?) 
         INSERT INTO communityPost(community, post) VALUES(?,?) '''
@@ -161,6 +162,7 @@ def create_post(connection, post, communityPost):
         cur.close()
 
 # comment is initially created with post/comment reference
+#NOT COMPLETE
 def create_comment(connection, comment):
     sql = ''' SELECT post.id FROM post where post.id = ? 
         INSERT INTO comment(user, post.id, reply, text)
