@@ -63,7 +63,7 @@ create_comment_table = """CREATE TABLE IF NOT EXISTS comment (
                                 id INTEGER PRIMARY KEY NOT NULL,
                                 post INTEGER NOT NULL,
                                 user INTEGER NOT NULL,
-                                reply INTEGER NOT NULL,
+                                reply INTEGER DEFAULT NULL,
                                 img LONGBLOB, 
                                 text TEXT,
                                 FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
@@ -87,7 +87,7 @@ create_postLike_table = """CREATE TABLE IF NOT EXISTS postLike (
                                 FOREIGN KEY (post) REFERENCES post(id) ON DELETE CASCADE
                             );"""
 
-create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
+create_communityUser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
                                 community INTEGER NOT NULL,
                                 user INTEGER NOT NULL,
                                 PRIMARY KEY (community, user),
@@ -95,7 +95,7 @@ create_communityuser_table = """ CREATE TABLE IF NOT EXISTS CommunityUser (
                                 FOREIGN KEY (user) REFERENCES user(id) ON DELETE CASCADE
                             );"""
 
-create_communitypost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
+create_communityPost_table = """ CREATE TABLE IF NOT EXISTS CommunityPost (
                                 community INTEGER NOT NULL,
                                 post INTEGER NOT NULL,
                                 PRIMARY KEY (community, post),
@@ -125,16 +125,121 @@ def setup():
         create_table(conn, create_comment_table)
         create_table(conn, create_commentLike_table)
         create_table(conn, create_postLike_table)
-        create_table(conn, create_communityuser_table)
-        create_table(conn, create_communitypost_table)
+        create_table(conn, create_communityUser_table)
+        create_table(conn, create_communityPost_table)
         create_table(conn, create_follow_table)
         conn.close()
 
+
+############# Relationships #############
+# follows, likes and community joins.
+def create_follow(connection, follow):
+    sql = ''' INSERT INTO follow(follower, follows) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (follow.follower, follow.follows))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+def create_commentLike(connection, commentLike):
+    sql = ''' INSERT INTO commentLike(user, comment) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (commentLike.user, commentLike.comment))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+def create_postLike(connection, postLike):
+    sql = ''' INSERT INTO postLike(user, post) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (postLike.user, postLike.post))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+def create_communityPost(connection, communityPost):
+    sql = ''' INSERT INTO CommunityPost(community, post) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (communityPost.community, communityPost.post))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+def create_communityUser(connection, communityUser):
+    sql = ''' INSERT INTO CommunityUser(community, user) VALUES(?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (communityUser.community, communityUser.user))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+############# COMMUNITY #############
+# community is initially created with communityUser
+def create_community(connection, community):
+    sql = ''' INSERT INTO community(about, creator) VALUES(?,?) ''' 
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (community.about, community.creator))
+        community.id = cur.lastrowid # INTEGER PRIMARY KEY // gets ID from last row
+        create_communityUser(community.id, community.creator) # add creator to communityUser table
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+# post is initially created with communityPost
+# when crating a post you need to pass info on what community it comes from to this function
+def create_post(connection, post, communityPost):
+    sql = ''' INSERT INTO post(user, img, text) VALUES(?,?,?) '''
+    try:
+        cur = connection.cursor()
+        cur.execute(sql, (post.user, post.img, post.text))
+        post.id = cur.lastrowid # INTEGER PRIMARY KEY // gets ID from last row
+        create_communityPost(communityPost.community, post.id)
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+# comment creation
+# when crating a comment you need to pass info on what post 
+# it comes from to this function and/if it is a reply or not.
+# Rreply is stored as an ID for a comment, or as 0
+def create_comment(connection, comment):
+    sql = ''' INSERT INTO comment(user, post, reply, text)
+                              VALUES(?,?,?,?) '''
+    try:
+        cur = connection.cursor()
+        # Check if the post exists
+        cur.execute(sql, (comment.user, comment.post, comment.reply, comment.text))
+        connection.commit()
+    except Error as e:
+        print(e)
+    finally:
+        cur.close()
+
+############# USER #############
 # user registration
-def register(connection, user):
+def create_user(connection, user):
     sql = ''' INSERT INTO users(username, gender, email, password, admin)
         VALUES(?,?,?,?,?) '''
- 
     try:
         cur = connection.cursor()
         cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
@@ -143,12 +248,11 @@ def register(connection, user):
         print(e)
     finally:
         cur.close()
-
-#user login
+        
+# user login
 def login(connection, username, password):
     sql = ''' SELECT username, password FROM users 
     WHERE username=? AND password=? ''' 
-
     try:
         cur = connection.cursor()
         cur.execute(sql, (username, password,))
@@ -162,7 +266,6 @@ def login(connection, username, password):
                 "username": username,
                 "password": password
             }        
-
     except Error as e:
         print(e)
     finally:
