@@ -227,7 +227,6 @@ def create_comment(connection, comment):
                               VALUES(?,?,?,?) '''
     try:
         cur = connection.cursor()
-        # Check if the post exists
         cur.execute(sql, (comment.user, comment.post, comment.reply, comment.text))
         connection.commit()
     except Error as e:

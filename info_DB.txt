@@ -30,7 +30,10 @@
 #       WHERE posts.id = ...; <- use to get one specific
 
 
-
+# PROBLEMS::
+# No transactions, ex:
+#   if a usewr deletes a post while someone else is making a comment,
+#   then things might go wrong.
 
 
 
