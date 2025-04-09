@@ -54,3 +54,17 @@
 # HOWEVER!!!! We want to delete creators and keep communities as a functionallity, 
 # and therefore 3NF is sufficeient and easier. 
 # It is in 3NF, and should stay that way. 
+
+
+
+
+
+# bruk av SQLite i python med try/except/finally skaper automatisk «transactions», men bør bruke en conn.rollback() -> conn= sqlite3.connect("eksempelDB"), i except området for å forsikre alt.
+# 
+# hvis vi bruker vanlig sql så må vi lage transactions selv, eks.:
+# 
+# BEGIN TRANSACTION;
+#    INSERT INTO users …
+#    UPDATE accounts SET …
+# COMMIT;
+# ROLLBACK; 
