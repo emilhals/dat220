@@ -140,6 +140,7 @@ def create_follow(connection, follow):
         cur.execute(sql, (follow.follower, follow.follows))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -151,6 +152,7 @@ def create_commentLike(connection, commentLike):
         cur.execute(sql, (commentLike.user, commentLike.comment))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -162,6 +164,7 @@ def create_postLike(connection, postLike):
         cur.execute(sql, (postLike.user, postLike.post))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -173,6 +176,7 @@ def create_communityPost(connection, communityPost):
         cur.execute(sql, (communityPost.community, communityPost.post))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -184,6 +188,7 @@ def create_communityUser(connection, communityUser):
         cur.execute(sql, (communityUser.community, communityUser.user))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -199,6 +204,7 @@ def create_community(connection, community):
         create_communityUser(community.id, community.creator) # add creator to communityUser table
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -214,6 +220,7 @@ def create_post(connection, post, communityPost):
         create_communityPost(communityPost.community, post.id)
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -230,6 +237,7 @@ def create_comment(connection, comment):
         cur.execute(sql, (comment.user, comment.post, comment.reply, comment.text))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
@@ -244,6 +252,7 @@ def create_user(connection, user):
         cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
         connection.commit()
     except Error as e:
+        connection.rollback()
         print(e)
     finally:
         cur.close()
