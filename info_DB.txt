@@ -56,7 +56,7 @@
 # It is in 3NF, and should stay that way. 
 
 
-
+# For all functions: i = True for insert, False for deletes
 
 
 # bruk av SQLite i python med try/except/finally skaper automatisk «transactions», men bør bruke en conn.rollback() -> conn= sqlite3.connect("eksempelDB"), i except området for å forsikre alt.

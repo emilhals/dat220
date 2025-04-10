@@ -130,11 +130,18 @@ def setup():
         create_table(conn, create_follow_table)
         conn.close()
 
+# For all functions: i = True for insert, False for deletes
 
 ############# Relationships #############
 # follows, likes and community joins.
-def create_follow(connection, follow):
-    sql = ''' INSERT INTO follow(follower, follows) VALUES(?,?) '''
+def follow(connection, follow, i):
+    if i:
+        sql = ''' INSERT INTO follow(follower, follows) VALUES(?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM follow WHERE follower=? AND follows=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (follow.follower, follow.follows))
@@ -145,8 +152,14 @@ def create_follow(connection, follow):
     finally:
         cur.close()
 
-def create_commentLike(connection, commentLike):
-    sql = ''' INSERT INTO commentLike(user, comment) VALUES(?,?) '''
+def commentLike(connection, commentLike, i):
+    if i:
+        sql = ''' INSERT INTO commentLike(user, comment) VALUES(?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM commentLike WHERE user=? AND comment=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (commentLike.user, commentLike.comment))
@@ -157,8 +170,14 @@ def create_commentLike(connection, commentLike):
     finally:
         cur.close()
 
-def create_postLike(connection, postLike):
-    sql = ''' INSERT INTO postLike(user, post) VALUES(?,?) '''
+def postLike(connection, postLike, i):
+    if i:
+        sql = ''' INSERT INTO postLike(user, post) VALUES(?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM postLike WHERE user=? AND post=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (postLike.user, postLike.post))
@@ -169,8 +188,14 @@ def create_postLike(connection, postLike):
     finally:
         cur.close()
 
-def create_communityPost(connection, communityPost):
-    sql = ''' INSERT INTO CommunityPost(community, post) VALUES(?,?) '''
+def communityPost(connection, communityPost, i):
+    if i:
+        sql = ''' INSERT INTO CommunityPost(community, post) VALUES(?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM CommunityPost WHERE community=? AND post=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (communityPost.community, communityPost.post))
@@ -181,8 +206,14 @@ def create_communityPost(connection, communityPost):
     finally:
         cur.close()
 
-def create_communityUser(connection, communityUser):
-    sql = ''' INSERT INTO CommunityUser(community, user) VALUES(?,?) '''
+def communityUser(connection, communityUser, i):
+    if i:
+        sql = ''' INSERT INTO CommunityUser(community, user) VALUES(?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM CommunityUser WHERE community=? AND user=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (communityUser.community, communityUser.user))
@@ -195,13 +226,19 @@ def create_communityUser(connection, communityUser):
 
 ############# COMMUNITY #############
 # community is initially created with communityUser
-def create_community(connection, community):
-    sql = ''' INSERT INTO community(about, creator) VALUES(?,?) ''' 
+def community(connection, community, i):
+    if i:
+        sql = ''' INSERT INTO community(about, creator) VALUES(?,?) ''' 
+    elif not i:
+        sql = ''' DELETE FROM community WHERE about=? AND creator=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (community.about, community.creator))
         community.id = cur.lastrowid # INTEGER PRIMARY KEY // gets ID from last row
-        create_communityUser(community.id, community.creator) # add creator to communityUser table
+        communityUser(community.id, community.creator, True) # add creator to communityUser table
         connection.commit()
     except Error as e:
         connection.rollback()
@@ -211,13 +248,19 @@ def create_community(connection, community):
 
 # post is initially created with communityPost
 # when crating a post you need to pass info on what community it comes from to this function
-def create_post(connection, post, communityPost):
-    sql = ''' INSERT INTO post(user, img, text) VALUES(?,?,?) '''
+def post(connection, post, communityPost, i):
+    if i:
+        sql = ''' INSERT INTO post(user, img, text) VALUES(?,?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM post WHERE user=? AND img=? AND text=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (post.user, post.img, post.text))
         post.id = cur.lastrowid # INTEGER PRIMARY KEY // gets ID from last row
-        create_communityPost(communityPost.community, post.id)
+        communityPost(communityPost.community, post.id, True)
         connection.commit()
     except Error as e:
         connection.rollback()
@@ -229,9 +272,14 @@ def create_post(connection, post, communityPost):
 # when crating a comment you need to pass info on what post 
 # it comes from to this function and/if it is a reply or not.
 # Rreply is stored as an ID for a comment, or as 0
-def create_comment(connection, comment):
-    sql = ''' INSERT INTO comment(user, post, reply, text)
+def comment(connection, comment, i):
+    if i:
+        sql = ''' INSERT INTO comment(user, post, reply, text)
                               VALUES(?,?,?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM comment WHERE user=? AND post=? AND reply=? AND text=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
     try:
         cur = connection.cursor()
         cur.execute(sql, (comment.user, comment.post, comment.reply, comment.text))
@@ -242,11 +290,18 @@ def create_comment(connection, comment):
     finally:
         cur.close()
 
+
 ############# USER #############
 # user registration
-def create_user(connection, user):
-    sql = ''' INSERT INTO users(username, gender, email, password, admin)
-        VALUES(?,?,?,?,?) '''
+def user(connection, user, i):
+    if i:
+        sql = ''' INSERT INTO users(username, gender, email, password, admin)
+            VALUES(?,?,?,?,?) '''
+    elif not i:
+        sql = ''' DELETE FROM users where username=? AND gender=? AND email=? AND password=? AND admin=? '''
+    else:
+        print("Invalid value : i, must be TRUE or FALSE")
+        return
     try:
         cur = connection.cursor()
         cur.execute(sql, (user.username, user.gender, user.email, user.password, user.admin))
