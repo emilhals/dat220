@@ -57,7 +57,7 @@
 
 
 # For all functions: i = True for insert, False for deletes
-
+# For lagring av admin brukere må vi endre fysisk i db selv.
 
 # bruk av SQLite i python med try/except/finally skaper automatisk «transactions», men bør bruke en conn.rollback() -> conn= sqlite3.connect("eksempelDB"), i except området for å forsikre alt.
 # 
@@ -68,3 +68,8 @@
 #    UPDATE accounts SET …
 # COMMIT;
 # ROLLBACK; 
+
+
+
+
+#MISSING:::: lage admins!
